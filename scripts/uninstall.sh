@@ -19,3 +19,7 @@ elif [ -f "/usr/bin/dpi" ]; then
 else
     echo -e "${RED}DPIReverse was not found in standard paths.${NC}"
 fi
+
+# Clear hash in current subshell and remind user
+hash -r
+echo -e "${BLUE}Tip: If you still see 'No such file or directory' errors, run ${NC}hash -r${BLUE} in your terminal to clear the path cache.${NC}"

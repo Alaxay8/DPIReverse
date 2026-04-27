@@ -41,5 +41,7 @@ else
     chmod +x "$INSTALL_DIR/dpi"
 fi
 
+hash -r
 echo -e "${GREEN}Success! DPIReverse is now installed as 'dpi'.${NC}"
 echo -e "You can run it from any directory using: ${BLUE}dpi scan youtube.com${NC}"
+echo -e "${BLUE}Note: If 'dpi' command is not found, run ${NC}hash -r${BLUE} to refresh your terminal cache.${NC}"
