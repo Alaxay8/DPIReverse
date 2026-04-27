@@ -18,8 +18,6 @@ if [ ! -f "go.mod" ]; then
     TMP_DIR=$(mktemp -d)
     git clone https://github.com/Alaxay8/DPIReverse.git "$TMP_DIR"
     cd "$TMP_DIR"
-    # Ensure we are on the dev branch if that's where the latest code is
-    git checkout dev &> /dev/null || true
 fi
 
 # 1. Check for Go
