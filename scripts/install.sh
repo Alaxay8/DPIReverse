@@ -14,9 +14,9 @@ echo -e "${BLUE}Starting DPIReverse installation...${NC}"
 
 # 0. Handle one-liner installation (cloning if not in repo)
 if [ ! -f "go.mod" ]; then
-    echo -e "${BLUE}Not in repository. Cloning from GitHub...${NC}"
+    echo -e "${BLUE}Not in repository. Cloning v1.0.0 from GitHub...${NC}"
     TMP_DIR=$(mktemp -d)
-    git clone https://github.com/Alaxay8/DPIReverse.git "$TMP_DIR"
+    git clone --depth 1 --branch v1.0.0 https://github.com/Alaxay8/DPIReverse.git "$TMP_DIR"
     cd "$TMP_DIR"
 fi
 
