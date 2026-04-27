@@ -12,7 +12,10 @@ echo -e "${BLUE}Uninstalling DPIReverse...${NC}"
 
 if [ -f "/usr/local/bin/dpi" ]; then
     sudo rm "/usr/local/bin/dpi"
-    echo -e "${GREEN}DPIReverse has been removed successfully.${NC}"
+    echo -e "${GREEN}DPIReverse has been removed from /usr/local/bin/dpi.${NC}"
+elif [ -f "/usr/bin/dpi" ]; then
+    sudo rm "/usr/bin/dpi"
+    echo -e "${GREEN}DPIReverse has been removed from /usr/bin/dpi.${NC}"
 else
-    echo "DPIReverse was not found in /usr/local/bin/dpi"
+    echo -e "${RED}DPIReverse was not found in standard paths.${NC}"
 fi

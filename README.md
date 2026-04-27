@@ -54,7 +54,6 @@ wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/v1.0.0/scripts/un
 ```bash
 git clone https://github.com/Alaxay8/DPIReverse.git
 cd DPIReverse
-go mod tidy
 go build -o dpi .
 ```
 
