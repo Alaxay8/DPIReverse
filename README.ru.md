@@ -37,11 +37,16 @@ go mod tidy
 go run . scan youtube.com
 ```
 
-### Быстрая установка (Linux и macOS)
+### Быстрая установка (одной командой)
 
 ```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/install.sh | bash
+```
+
+### Удаление
+
+```bash
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/uninstall.sh | bash
 ```
 
 ### Ручная установка

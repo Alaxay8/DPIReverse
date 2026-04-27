@@ -37,11 +37,16 @@ go mod tidy
 go run . scan youtube.com
 ```
 
-### Easy Installation (Linux & macOS)
+### One-liner Installation (Linux & macOS)
 
 ```bash
-chmod +x scripts/install.sh
-./scripts/install.sh
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/install.sh | bash
+```
+
+### One-liner Uninstallation
+
+```bash
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/uninstall.sh | bash
 ```
 
 ### Manual Installation

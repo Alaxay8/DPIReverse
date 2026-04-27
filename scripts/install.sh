@@ -12,6 +12,16 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}Starting DPIReverse installation...${NC}"
 
+# 0. Handle one-liner installation (cloning if not in repo)
+if [ ! -f "go.mod" ]; then
+    echo -e "${BLUE}Not in repository. Cloning from GitHub...${NC}"
+    TMP_DIR=$(mktemp -d)
+    git clone https://github.com/Alaxay8/DPIReverse.git "$TMP_DIR"
+    cd "$TMP_DIR"
+    # Ensure we are on the dev branch if that's where the latest code is
+    git checkout dev &> /dev/null || true
+fi
+
 # 1. Check for Go
 if ! command -v go &> /dev/null; then
     echo -e "${RED}Error: Go is not installed. Please install Go (1.21+) to build the utility.${NC}"
