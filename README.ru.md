@@ -37,11 +37,14 @@ go mod tidy
 go run . scan youtube.com
 ```
 
-## Установка
+### Быстрая установка (Linux и macOS)
 
-1. Клонируйте репозиторий.
-2. Установите зависимости.
-3. Соберите бинарный файл.
+```bash
+chmod +x scripts/install.sh
+./scripts/install.sh
+```
+
+### Ручная установка
 
 ```bash
 git clone https://github.com/Alaxay8/DPIReverse.git
