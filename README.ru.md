@@ -63,13 +63,13 @@ go build -o dpi .
 Запуск быстрого текстового отчета:
 
 ```bash
-./dpi scan youtube.com --profile quick --format text
+dpi scan youtube.com --profile quick --format text
 ```
 
 Запуск полного профиля через прокси с выводом JSON:
 
 ```bash
-./dpi scan youtube.com --profile full --proxy socks5://127.0.0.1:9050 --format json --repeats 3
+dpi scan youtube.com --profile full --proxy socks5://127.0.0.1:9050 --format json --repeats 3
 ```
 
 Основные флаги:
