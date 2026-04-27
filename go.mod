@@ -1,6 +1,6 @@
 module github.com/Alaxay8/dpireverse
 
-go 1.26
+go 1.25.0
 
 require (
 	github.com/refraction-networking/utls v1.8.2
