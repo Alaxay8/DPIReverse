@@ -40,13 +40,13 @@ go run . scan youtube.com
 ### Быстрая установка (одной командой)
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/install.sh | bash
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/v1.0.0/scripts/install.sh | bash
 ```
 
 ### Удаление
 
 ```bash
-wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/dev/scripts/uninstall.sh | bash
+wget -qO- https://raw.githubusercontent.com/Alaxay8/DPIReverse/v1.0.0/scripts/uninstall.sh | bash
 ```
 
 ### Ручная установка
