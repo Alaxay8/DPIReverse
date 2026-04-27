@@ -1,0 +1,15 @@
+# Binaries
+dpi
+dpi_linux
+dpireverse.tar.gz
+
+# IDE
+.idea/
+.vscode/
+
+# Dependencies
+vendor/
+go.sum
+
+# OS
+.DS_Store

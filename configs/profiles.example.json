@@ -1,0 +1,17 @@
+{
+  "note": "The MVP currently ships with code-defined quick and full profiles. This file documents the intended shape of future config-driven plans.",
+  "tests": [
+    {
+      "id": "tls-baseline-chrome13",
+      "protocol": "tls",
+      "tags": {
+        "scenario": "tls",
+        "variant": "baseline",
+        "client_hello": "chrome",
+        "tls_version": "1.3",
+        "sni_mode": "target",
+        "fragmented": "false"
+      }
+    }
+  ]
+}
