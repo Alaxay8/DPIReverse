@@ -24,6 +24,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 
 	switch args[0] {
 	case "scan":
+		if len(args) > 1 && args[1] == "auto" {
+			return runScanAuto(ctx, args[2:], stdout, stderr)
+		}
 		return runScan(ctx, args[1:], stdout, stderr)
 	case "help":
 		printDetailedHelp(stdout)
@@ -40,7 +43,9 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "DPIReverse — Black-box network analysis tool for DPI behavior inference.")
 	fmt.Fprintln(w, "\nUsage:")
 	fmt.Fprintln(w, "  dpi scan <resource> [--profile quick|full] [--format text|json] [--repeats N] [--proxy URL]")
+	fmt.Fprintln(w, "  dpi scan auto       # Auto-scan built-in popular resources")
 	fmt.Fprintln(w, "\nExamples:")
+	fmt.Fprintln(w, "  dpi scan auto")
 	fmt.Fprintln(w, "  dpi scan youtube.com")
 	fmt.Fprintln(w, "  dpi scan youtube.com --profile full --repeats 3 --format json")
 	fmt.Fprintln(w, "\nTry 'dpi help' for detailed information or 'dpi scan --help' for all flags.")
@@ -53,6 +58,7 @@ func printDetailedHelp(w io.Writer) {
 	fmt.Fprintln(w, "to detect filtering at different layers (L3/L4/L7).")
 
 	fmt.Fprintln(w, "\nUsage Examples:")
+	fmt.Fprintln(w, "  dpi scan auto                                    # Scan built-in popular domains")
 	fmt.Fprintln(w, "  dpi scan youtube.com                             # Quick report")
 	fmt.Fprintln(w, "  dpi scan youtube.com --format json > report.json # Export to JSON")
 	fmt.Fprintln(w, "  dpi scan instagram.com --profile full            # Deep analysis")

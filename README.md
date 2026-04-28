@@ -29,8 +29,48 @@ Use DPIReverse only on networks and services you are authorized to test.
 - Measurement Jitter to prevent rate-limiting and pattern detection.
 - Human-readable CLI reports and machine-readable JSON output.
 - Concurrent experiment execution with configurable repetition counts.
+- **Auto-scan mode** with a built-in list of popular restricted resources.
 
-## Quick Start
+## Scanning Strategies
+
+DPIReverse uses various techniques to identify filtering patterns:
+
+- **TLS baseline Chrome-like**: A standard TLS 1.3 handshake mimicking a modern Chrome browser with a valid SNI (Server Name Indication). Used as a control test to see if the resource is blocked by default.
+- **TLS empty SNI variant**: Sends a handshake without any SNI extension. Many DPI systems fail to identify the target domain when the SNI is missing.
+- **TLS fragmented ClientHello**: Splits the initial handshake packet into small chunks (e.g., 32 bytes) with a slight delay. This often confuses DPI state machines.
+- **TLS randomized fingerprint**: Uses a randomized JA3 signature to check if the filter blocks based on specific browser fingerprints.
+- **TLS randomized SNI**: (Full profile) Sends a fake/random domain in the SNI field to check if the block is IP-based or purely SNI-based.
+
+## Custom Resource Lists
+
+You can provide your own list of domains for mass scanning using the `--file` flag. Two formats are supported:
+
+### 1. Plain Text (.txt)
+A simple list of domains, one per line. Lines starting with `#` are treated as comments.
+
+```text
+# My custom list
+google.com
+twitter.com
+example.org
+```
+
+### 2. YAML (.yaml)
+A structured format that allows grouping resources into categories and providing human-readable names.
+
+```yaml
+categories:
+  - name: "Social Media"
+    resources:
+      - domain: "twitter.com"
+        name: "X (Twitter)"
+      - domain: "instagram.com"
+        name: "Instagram"
+  - name: "My Servers"
+    resources:
+      - domain: "vpn.example.com"
+        name: "Home VPN"
+```
 
 ```bash
 go mod tidy
@@ -65,10 +105,16 @@ Run a quick text report:
 dpi scan youtube.com --profile quick --format text
 ```
 
-Run a full profile via proxy and emit JSON:
+Run an automatic scan of built-in resources:
 
 ```bash
-dpi scan youtube.com --profile full --proxy socks5://127.0.0.1:9050 --format json --repeats 3
+dpi scan auto
+```
+
+Run an automatic scan from a custom file (TXT or YAML):
+
+```bash
+dpi scan auto --file my_domains.txt
 ```
 
 Common flags:
@@ -79,6 +125,7 @@ Common flags:
 - `--proxy`: SOCKS5 proxy URL (e.g., `socks5://127.0.0.1:9050`).
 - `--format`: `text` or `json`.
 - `--repeats`: attempts per test case.
+- `--file`, `-f`: path to a custom resources file (TXT or YAML).
 - `--timeout`: per-attempt timeout such as `5s`.
 - `--concurrency`: number of worker goroutines.
 - `--log-level`: `debug`, `info`, or `warn`.
