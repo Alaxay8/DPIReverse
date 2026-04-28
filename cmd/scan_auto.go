@@ -21,6 +21,7 @@ import (
 	"github.com/Alaxay8/dpireverse/internal/transport"
 	"github.com/Alaxay8/dpireverse/pkg/model"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/schollz/progressbar/v3"
 	"gopkg.in/yaml.v3"
 )
 
@@ -172,6 +173,7 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 	}
 
 	fmt.Fprintf(stdout, "Starting automatic scan of %d resources...\n", len(allTasks))
+	bar := progressbar.Default(int64(len(allTasks)))
 	startTime := time.Now()
 
 	// Worker pool
@@ -181,7 +183,10 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 			wg.Add(1)
 			sem <- struct{}{}
 			go func(t func()) {
-				defer func() { <-sem }()
+				defer func() {
+					<-sem
+					_ = bar.Add(1)
+				}()
 				t()
 			}(task)
 		}
