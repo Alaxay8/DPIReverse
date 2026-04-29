@@ -138,12 +138,20 @@ func describeResult(result model.TestResult) string {
 		return fmt.Sprintf("%s (%s)", result.Name, result.TestID)
 	}
 
+	scenario := result.Tags["scenario"]
 	variant := result.Tags["variant"]
 	clientHello := fallback(result.Tags["client_hello"], "default")
 	tlsVersion := fallback(result.Tags["tls_version"], "default")
 	sniMode := fallback(result.Tags["sni_mode"], "default")
 	fragmented := result.Tags["fragmented"] == "true"
-	role := roleForVariant(variant)
+	role := roleForVariant(result)
+
+	if scenario == "http2" {
+		return fmt.Sprintf("%s: standard HTTP/2 request", role)
+	}
+	if scenario == "http3" {
+		return fmt.Sprintf("%s: standard HTTP/3 (QUIC) request", role)
+	}
 
 	if fragmented {
 		return fmt.Sprintf("%s: fragmented TLS handshake, client hello %s, TLS %s, SNI %s", role, clientHello, tlsVersion, sniMode)
@@ -157,7 +165,17 @@ func describeResult(result model.TestResult) string {
 	return fmt.Sprintf("%s: %s, client hello %s, TLS %s, SNI %s", role, handshakeKind, clientHello, tlsVersion, sniMode)
 }
 
-func roleForVariant(variant string) string {
+func roleForVariant(result model.TestResult) string {
+	scenario := result.Tags["scenario"]
+	variant := result.Tags["variant"]
+
+	if scenario == "http2" {
+		return "HTTP/2 baseline"
+	}
+	if scenario == "http3" {
+		return "HTTP/3 baseline"
+	}
+
 	switch variant {
 	case "baseline":
 		return "baseline"
@@ -211,6 +229,14 @@ func resultNote(result model.TestResult) string {
 	case "ja3_randomized", "ja3_golang":
 		return "Use this variant to compare fingerprint sensitivity. A large delta against the baseline suggests TLS fingerprint-based blocking."
 	default:
+		scenario := result.Tags["scenario"]
+		if scenario == "http3" {
+			return "Tests if UDP-based QUIC traffic is allowed. Success here bypasses many TCP-based DPI inspection rules."
+		}
+		if scenario == "http2" {
+			return "Standard application layer check over TCP/TLS."
+		}
+
 		if result.Tags["sni_mode"] == "target" {
 			return "This is the control path for the requested resource."
 		}

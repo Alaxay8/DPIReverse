@@ -4,10 +4,13 @@ import (
 	"context"
 	_ "embed"
 	"flag"
+	"crypto/tls"
 	"fmt"
 	"io"
 	"bufio"
 	"log/slog"
+	"net"
+	"net/http"
 	"os"
 	"strings"
 	"sync"
@@ -43,11 +46,12 @@ type Resource struct {
 }
 
 type scanAutoResult struct {
-	Resource Resource
-	Category string
-	Success  bool
-	Strategy string
-	Err      error
+	Resource  Resource
+	Category  string
+	Success   bool
+	Strategy  string
+	SpeedKbps float64
+	Err       error
 }
 
 func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) error {
@@ -59,6 +63,7 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 		concurrency int
 		proxy       string
 		inputFile   string
+		showSpeed   bool
 	)
 
 	fs.IntVar(&port, "port", 443, "Target port")
@@ -66,6 +71,8 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 	fs.StringVar(&proxy, "proxy", "", "Proxy URL (socks5:// or http://)")
 	fs.StringVar(&inputFile, "file", "", "Path to custom resources file (YAML or TXT)")
 	fs.StringVar(&inputFile, "f", "", "Path to custom resources file (shorthand)")
+	fs.BoolVar(&showSpeed, "speed", false, "Measure download speed for accessible resources")
+	fs.BoolVar(&showSpeed, "s", false, "Measure download speed (shorthand)")
 
 	if err := fs.Parse(args); err != nil {
 		return wrapCommandError(err, "parse flags")
@@ -143,22 +150,35 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 
 				if success {
 					if len(successfulStrategies) > 0 {
-                        // If "Direct Access" is present, it's not blocked
-                        directIndex := -1
-                        for i, s := range successfulStrategies {
-                            if s == "Direct Access" {
-                                directIndex = i
-                                break
-                            }
-                        }
-                        if directIndex != -1 {
-                            strategy = "Direct Access"
-                        } else {
-                            strategy = successfulStrategies[0] // pick the first successful bypass
-                        }
+						// Normalize "Direct Access" or baseline names (both 1.3 and 1.2)
+						directFound := false
+						for _, s := range successfulStrategies {
+							if s == "Direct Access" || s == "TLS baseline Chrome-like" || s == "TLS 1.2 baseline Chrome-like" {
+								directFound = true
+								break
+							}
+						}
+						if directFound {
+							strategy = "Direct Access"
+						} else {
+							strategy = successfulStrategies[0] // pick the first successful bypass
+						}
 					} else {
-                        strategy = "SUCCESS"
-                    }
+						strategy = "SUCCESS"
+					}
+
+					// Measure speed if requested
+					if showSpeed {
+						speed, _ := measureThroughput(ctx, res.Domain, port, proxy)
+						resultChan <- scanAutoResult{
+							Resource:  res,
+							Category:  catName,
+							Success:   true,
+							Strategy:  strategy,
+							SpeedKbps: speed,
+						}
+						return
+					}
 				}
 
 				resultChan <- scanAutoResult{
@@ -208,7 +228,11 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
 	// Draw table
 	t := table.NewWriter()
 	t.SetOutputMirror(stdout)
-	t.AppendHeader(table.Row{"Category", "Resource Name", "Domain", "Status", "Strategy / Error"})
+	header := table.Row{"Category", "Resource Name", "Domain", "Status", "Strategy / Error"}
+	if showSpeed {
+		header = append(header, "Speed")
+	}
+	t.AppendHeader(header)
 
 	for _, res := range results {
 		status := "❌ BLOCKED"
@@ -225,13 +249,25 @@ func runScanAuto(ctx context.Context, args []string, stdout, stderr io.Writer) e
             }
 		}
 
-		t.AppendRow([]interface{}{
+		row := table.Row{
 			res.Category,
 			res.Resource.Name,
 			res.Resource.Domain,
 			status,
 			info,
-		})
+		}
+		if showSpeed {
+			speedStr := "-"
+			if res.Success {
+				if res.SpeedKbps > 1024 {
+					speedStr = fmt.Sprintf("%.2f Mbps", res.SpeedKbps/1024)
+				} else {
+					speedStr = fmt.Sprintf("%.1f Kbps", res.SpeedKbps)
+				}
+			}
+			row = append(row, speedStr)
+		}
+		t.AppendRow(row)
 	}
 
 	t.AppendSeparator()
@@ -285,4 +321,72 @@ func loadResourcesFromFile(path string) (ResourcesConfig, error) {
 			},
 		},
 	}, nil
+}
+
+func measureThroughput(ctx context.Context, domain string, port int, proxy string) (float64, error) {
+	// Create a custom transport that uses our ProxyDialer
+	tr := &http.Transport{
+		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+			return transport.ProxyDialer(ctx, network, addr, proxy)
+		},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+			ServerName:         domain,
+		},
+	}
+	
+	client := &http.Client{
+		Transport: tr,
+		Timeout:   7 * time.Second,
+	}
+
+	url := fmt.Sprintf("https://%s:%d/", domain, port)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return 0, err
+	}
+	// Use a common user agent to avoid being blocked by WAF/Bot protection
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36")
+
+	start := time.Now()
+	resp, err := client.Do(req)
+	if err != nil {
+		return 0, err
+	}
+	defer resp.Body.Close()
+
+	// Read body for up to 3 seconds
+	timeoutCtx, cancel := context.WithTimeout(ctx, 3*time.Second)
+	defer cancel()
+
+	var totalBytes int64
+	buf := make([]byte, 32*1024)
+	
+	downloadStart := time.Now()
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			goto done
+		default:
+			n, err := resp.Body.Read(buf)
+			totalBytes += int64(n)
+			if err != nil {
+				goto done
+			}
+		}
+	}
+
+done:
+	elapsed := time.Since(downloadStart).Seconds()
+	if elapsed <= 0 {
+		// If we finished instantly (small page), use time from request start to get some data
+		elapsed = time.Since(start).Seconds()
+	}
+
+	if elapsed <= 0 {
+		return 0, nil
+	}
+
+	kbps := (float64(totalBytes) * 8) / (elapsed * 1024)
+	return kbps, nil
 }

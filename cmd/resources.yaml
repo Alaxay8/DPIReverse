@@ -89,3 +89,10 @@ categories:
         name: "Rutor"
       - domain: "kinozal.tv"
         name: "Kinozal"
+  - name: "Global Search"
+    resources:
+      - domain: "google.com"
+        name: "Google"
+      - domain: "bing.com"
+        name: "Bing"
+
