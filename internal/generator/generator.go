@@ -177,6 +177,23 @@ func fullTLSProfile(target model.Target, repeats int, timeout time.Duration) []m
 				Path:   "/",
 			},
 		},
+		model.TestCase{
+			ID:       "http3-baseline",
+			Name:     "HTTP/3 (QUIC) baseline request",
+			Group:    "http-primary",
+			Protocol: model.ProtocolHTTP3,
+			Target:   target,
+			Repeats:  repeats,
+			Timeout:  timeout,
+			Tags: map[string]string{
+				"scenario": "http3",
+				"variant":  "baseline",
+			},
+			HTTP3: &model.HTTP3Options{
+				Method: "GET",
+				Path:   "/",
+			},
+		},
 	)
 
 	return cases

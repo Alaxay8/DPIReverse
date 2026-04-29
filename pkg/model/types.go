@@ -17,6 +17,7 @@ const (
 	ProtocolWebSocket Protocol = "websocket"
 	ProtocolHTTP      Protocol = "http"
 	ProtocolHTTP2     Protocol = "http2"
+	ProtocolHTTP3     Protocol = "http3"
 )
 
 type Profile string
@@ -84,6 +85,7 @@ type TestCase struct {
 	UDP       *UDPOptions       `json:"udp,omitempty"`
 	WebSocket *WebSocketOptions `json:"websocket,omitempty"`
 	HTTP      *HTTPOptions      `json:"http,omitempty"`
+	HTTP3     *HTTP3Options     `json:"http3,omitempty"`
 }
 
 type TLSOptions struct {
@@ -120,6 +122,11 @@ type HTTPOptions struct {
 	Headers          map[string]string `json:"headers,omitempty"`
 	RandomizeHeaders bool              `json:"randomize_headers,omitempty"`
 	UserAgent        string            `json:"user_agent,omitempty"`
+}
+
+type HTTP3Options struct {
+	Method string            `json:"method,omitempty"`
+	Path   string            `json:"path,omitempty"`
 }
 
 type Measurement struct {

@@ -25,6 +25,7 @@ func NewRegistry(logger *slog.Logger, proxyURL string) *Registry {
 			model.ProtocolWebSocket: &WebSocketRunner{proxyURL: proxyURL},
 			model.ProtocolHTTP:      &HTTPRunner{logger: logger, proxyURL: proxyURL},
 			model.ProtocolHTTP2:     &HTTP2Runner{logger: logger, proxyURL: proxyURL},
+			model.ProtocolHTTP3:     &HTTP3Runner{logger: logger, proxyURL: proxyURL},
 		},
 	}
 }

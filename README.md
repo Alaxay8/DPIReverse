@@ -28,8 +28,9 @@ Use DPIReverse only on networks and services you are authorized to test.
 - SOCKS5 proxy support for anonymous scanning and research.
 - Measurement Jitter to prevent rate-limiting and pattern detection.
 - Human-readable CLI reports and machine-readable JSON output.
-- Concurrent experiment execution with configurable repetition counts.
 - **Auto-scan mode** with a built-in list of popular restricted resources.
+- **HTTP/3 (QUIC) Support**: Specialized runner for UDP-based bypass analysis.
+- **Throughput Measurement**: Integrated speed test for successful bypass strategies.
 
 ## Scanning Strategies
 
@@ -40,6 +41,7 @@ DPIReverse uses various techniques to identify filtering patterns:
 - **TLS fragmented ClientHello**: Splits the initial handshake packet into small chunks (e.g., 32 bytes) with a slight delay. This often confuses DPI state machines.
 - **TLS randomized fingerprint**: Uses a randomized JA3 signature to check if the filter blocks based on specific browser fingerprints.
 - **TLS randomized SNI**: (Full profile) Sends a fake/random domain in the SNI field to check if the block is IP-based or purely SNI-based.
+- **HTTP/3 (QUIC) Baseline**: (Full profile) Performs a native QUIC handshake. Success here often indicates that the network path allows UDP traffic that bypasses standard TCP-based DPI rules.
 
 ## Custom Resource Lists
 
@@ -129,6 +131,7 @@ Common flags:
 - `--timeout`: per-attempt timeout such as `5s`.
 - `--concurrency`: number of worker goroutines.
 - `--log-level`: `debug`, `info`, or `warn`.
+- `--speed`, `-s`: measure download speed for successful bypasses.
 
 ## Examples
 
