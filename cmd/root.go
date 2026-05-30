@@ -27,6 +27,9 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 		if len(args) > 1 && args[1] == "auto" {
 			return runScanAuto(ctx, args[2:], stdout, stderr)
 		}
+		if len(args) > 1 && args[1] == "proxy" {
+			return runScanProxy(ctx, args[2:], stdout, stderr)
+		}
 		return runScan(ctx, args[1:], stdout, stderr)
 	case "help":
 		printDetailedHelp(stdout)
@@ -45,15 +48,16 @@ func printUsage(w io.Writer) {
 	fmt.Fprintln(w, "\nUsage:")
 	fmt.Fprintln(w, "  dpi scan <domain> [flags]    Perform analysis on a specific target")
 	fmt.Fprintln(w, "  dpi scan auto [flags]      Automated scan of pre-defined popular resources")
+	fmt.Fprintln(w, "  dpi scan proxy <link>      Audit a proxy server configuration for DPI resistance")
 	fmt.Fprintln(w, "  dpi help                   Show detailed explanation of capabilities")
 	fmt.Fprintln(w, "\nCore Capabilities:")
 	fmt.Fprintln(w, "  • Fingerprint Spoofing (JA3, uTLS)")
 	fmt.Fprintln(w, "  • Multi-layer Analysis (TCP, TLS, HTTP/2, HTTP/3)")
 	fmt.Fprintln(w, "  • Packet Fragmentation (bypass testing)")
-	fmt.Fprintln(w, "  • SOCKS5/HTTP Proxy Support")
+	fmt.Fprintln(w, "  • SOCKS5/HTTP Proxy Support & Proxy Auditing (VLESS, Trojan, SS)")
 	fmt.Fprintln(w, "\nQuick Start:")
 	fmt.Fprintln(w, "  dpi scan google.com")
-	fmt.Fprintln(w, "  dpi scan auto --speed")
+	fmt.Fprintln(w, "  dpi scan proxy vless://...")
 }
 
 func printDetailedHelp(w io.Writer) {
